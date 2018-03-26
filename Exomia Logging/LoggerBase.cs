@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 namespace Exomia.Logging
 {
+    /// <inheritdoc />
     public abstract class LoggerBase : ILogger
     {
         private LogMethod _logMethod = LogMethod.Both;

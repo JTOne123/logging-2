@@ -8,6 +8,7 @@ namespace Exomia.Logging
         Warning,
         Error
     }
+    [Flags]
     public enum LogMethod
     {
         Default = 1 << 0,
