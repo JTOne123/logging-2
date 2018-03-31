@@ -1,4 +1,28 @@
-﻿using System;
+﻿#region MIT License
+
+// Copyright (c) 2018 exomia - Daniel Bätz
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
+#endregion
+
+using System;
 using System.Collections.Generic;
 
 namespace Exomia.Logging
@@ -6,15 +30,19 @@ namespace Exomia.Logging
     /// <inheritdoc />
     public abstract class LoggerBase : ILogger
     {
-        private LogMethod _logMethod = LogMethod.Both;
+        #region Variables
 
         /// <summary>
-        /// 
         /// </summary>
         protected readonly string _className = string.Empty;
 
-        internal readonly Queue<string> _queue = null;
-        internal Queue<string> _tempQueue = null;
+        internal readonly Queue<string> _queue;
+        private LogMethod _logMethod = LogMethod.Both;
+        internal Queue<string> _tempQueue;
+
+        #endregion
+
+        #region Properties
 
         /// <inheritdoc />
         public LogMethod LogMethod
@@ -23,12 +51,20 @@ namespace Exomia.Logging
             set { _logMethod = value; }
         }
 
+        #endregion
+
+        #region Constructors
+
         /// <inheritdoc />
         protected LoggerBase(string className)
         {
             _className = className;
             _queue = new Queue<string>();
         }
+
+        #endregion
+
+        #region Methods
 
         /// <inheritdoc />
         public void Info(Exception ex)
@@ -37,12 +73,14 @@ namespace Exomia.Logging
             {
                 lock (_queue)
                 {
-                    _queue.Enqueue($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [{_className}] [{LogType.Info}] {ex.StackTrace}");
+                    _queue.Enqueue(
+                        $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [{_className}] [{LogType.Info}] {ex.StackTrace}");
                 }
             }
             if ((_logMethod & LogMethod.Console) == LogMethod.Console)
             {
-                Console.Out.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [{_className}] [{LogType.Info}] {ex.StackTrace}");
+                Console.Out.WriteLine(
+                    $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [{_className}] [{LogType.Info}] {ex.StackTrace}");
             }
         }
 
@@ -86,14 +124,16 @@ namespace Exomia.Logging
             {
                 lock (_queue)
                 {
-                    _queue.Enqueue($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [{_className}] [{LogType.Warning}] {ex.StackTrace}");
+                    _queue.Enqueue(
+                        $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [{_className}] [{LogType.Warning}] {ex.StackTrace}");
                 }
             }
             if ((_logMethod & LogMethod.Console) == LogMethod.Console)
             {
                 ConsoleColor current = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.Out.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [{_className}] [{LogType.Warning}] {ex.StackTrace}");
+                Console.Out.WriteLine(
+                    $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [{_className}] [{LogType.Warning}] {ex.StackTrace}");
                 Console.ForegroundColor = current;
             }
         }
@@ -112,7 +152,8 @@ namespace Exomia.Logging
             {
                 ConsoleColor current = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.Out.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [{_className}] [{LogType.Warning}] {message}");
+                Console.Out.WriteLine(
+                    $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [{_className}] [{LogType.Warning}] {message}");
                 Console.ForegroundColor = current;
             }
         }
@@ -132,7 +173,8 @@ namespace Exomia.Logging
             {
                 ConsoleColor current = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.Out.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [{_className}] [{LogType.Warning}] {format}");
+                Console.Out.WriteLine(
+                    $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [{_className}] [{LogType.Warning}] {format}");
                 Console.ForegroundColor = current;
             }
         }
@@ -144,14 +186,16 @@ namespace Exomia.Logging
             {
                 lock (_queue)
                 {
-                    _queue.Enqueue($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [{_className}] [{LogType.Error}] {ex.StackTrace}");
+                    _queue.Enqueue(
+                        $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [{_className}] [{LogType.Error}] {ex.StackTrace}");
                 }
             }
             if ((_logMethod & LogMethod.Console) == LogMethod.Console)
             {
                 ConsoleColor current = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.Out.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [{_className}] [{LogType.Error}] {ex.StackTrace}");
+                Console.Out.WriteLine(
+                    $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [{_className}] [{LogType.Error}] {ex.StackTrace}");
                 Console.ForegroundColor = current;
             }
         }
@@ -192,8 +236,6 @@ namespace Exomia.Logging
             }
         }
 
-        internal abstract void PrepareLogging(DateTime dateTime);
-
         /// <inheritdoc />
         public void Flush()
         {
@@ -212,19 +254,24 @@ namespace Exomia.Logging
             }
             OnFlushFinished();
         }
+
         /// <summary>
-        /// called at the end of a flush
+        ///     called at the end of a flush
         /// </summary>
         public abstract void OnFlushFinished();
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="entry"></param>
         public abstract void Flush(string entry);
 
+        internal abstract void PrepareLogging(DateTime dateTime);
+
+        #endregion
+
         #region IDisposable Support
-        private bool _disposedValue = false;
+
+        private bool _disposedValue;
 
         private void Dispose(bool disposing)
         {
@@ -240,7 +287,6 @@ namespace Exomia.Logging
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="disposing"></param>
         protected virtual void OnDispose(bool disposing) { }
@@ -250,6 +296,7 @@ namespace Exomia.Logging
         {
             Dispose(true);
         }
+
         #endregion
     }
 }
