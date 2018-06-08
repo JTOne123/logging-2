@@ -15,12 +15,12 @@
     <tags>exomia logging</tags>
   </metadata>
   <files>
-	<file src="bin\x86\Release\$id$.dll" target="lib\net471\x86"/>	
-	<file src="bin\x86\Release\$id$.xml" target="lib\net471\x86"/>
+	<file src="bin\x86\Release\$id$.dll" target="build\net471\x86"/>	
+	<file src="bin\x86\Release\$id$.xml" target="build\net471\x86"/>
 	
-	<file src="bin\x64\Release\$id$.dll" target="lib\net471\x64"/>
-	<file src="bin\x64\Release\$id$.xml" target="lib\net471\x64"/>
+	<file src="bin\x64\Release\$id$.dll" target="build\net471\x64"/>
+	<file src="bin\x64\Release\$id$.xml" target="build\net471\x64"/>
 	
-	<file src="build\**" target="build" />
+	<file src="build\net471\_.targets" target="build\net471\$id$.targets" />
   </files>
 </package>
