@@ -35,8 +35,6 @@ namespace Exomia.Logging
     /// </summary>
     public static class LogManager
     {
-        #region Variables
-
         private static readonly Dictionary<Type, LoggerBase> s_typeLoggers;
         private static LoggerBase[] s_loggers;
         private static int s_loggerCount;
@@ -46,10 +44,6 @@ namespace Exomia.Logging
 
         private static int s_maxLogAge = 2 * 1000;
         private static int s_maxQueueSize = 100;
-
-        #endregion
-
-        #region Properties
 
         /// <summary>
         ///     MaxLogAge
@@ -69,10 +63,6 @@ namespace Exomia.Logging
             set { s_maxQueueSize = value; }
         }
 
-        #endregion
-
-        #region Constructors
-
         static LogManager()
         {
             s_mainThread = Thread.CurrentThread;
@@ -85,10 +75,6 @@ namespace Exomia.Logging
                 IsBackground = false
             };
         }
-
-        #endregion
-
-        #region Methods
 
         /// <summary>
         ///     start logging
@@ -205,7 +191,5 @@ namespace Exomia.Logging
             }
             s_loggerCount = 0;
         }
-
-        #endregion
     }
 }

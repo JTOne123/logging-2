@@ -30,30 +30,13 @@ namespace Exomia.Logging
     /// <inheritdoc />
     public abstract class LoggerBase : ILogger
     {
-        #region Variables
-
         /// <summary>
         /// </summary>
         protected readonly string _className = string.Empty;
 
         internal readonly Queue<string> _queue;
-        private LogMethod _logMethod = LogMethod.Both;
         internal Queue<string> _tempQueue;
-
-        #endregion
-
-        #region Properties
-
-        /// <inheritdoc />
-        public LogMethod LogMethod
-        {
-            get { return _logMethod; }
-            set { _logMethod = value; }
-        }
-
-        #endregion
-
-        #region Constructors
+        private LogMethod _logMethod = LogMethod.Both;
 
         /// <inheritdoc />
         protected LoggerBase(string className)
@@ -62,9 +45,12 @@ namespace Exomia.Logging
             _queue = new Queue<string>();
         }
 
-        #endregion
-
-        #region Methods
+        /// <inheritdoc />
+        public LogMethod LogMethod
+        {
+            get { return _logMethod; }
+            set { _logMethod = value; }
+        }
 
         /// <inheritdoc />
         public void Info(Exception ex)
@@ -266,8 +252,6 @@ namespace Exomia.Logging
         public abstract void Flush(string entry);
 
         internal abstract void PrepareLogging(DateTime dateTime);
-
-        #endregion
 
         #region IDisposable Support
 

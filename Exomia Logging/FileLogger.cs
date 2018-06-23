@@ -31,16 +31,10 @@ namespace Exomia.Logging
     /// <inheritdoc />
     public sealed class FileLogger : LoggerBase
     {
-        #region Variables
-
         private readonly string _currentLogDirectory;
         private string _currentLogFile = string.Empty;
 
         private FileStream _fileStream;
-
-        #endregion
-
-        #region Properties
 
         /// <summary>
         /// </summary>
@@ -56,19 +50,11 @@ namespace Exomia.Logging
             get { return _currentLogFile; }
         }
 
-        #endregion
-
-        #region Constructors
-
         internal FileLogger(string className, string logDirectory)
             : base(className)
         {
             _currentLogDirectory = logDirectory;
         }
-
-        #endregion
-
-        #region Methods
 
         /// <inheritdoc />
         public override void Flush(string entry)
@@ -114,7 +100,5 @@ namespace Exomia.Logging
             _fileStream = new FileStream(
                 Path.Combine(_currentLogDirectory, _currentLogFile), FileMode.Append, FileAccess.Write);
         }
-
-        #endregion
     }
 }

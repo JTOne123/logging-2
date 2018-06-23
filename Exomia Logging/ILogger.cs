@@ -69,16 +69,10 @@ namespace Exomia.Logging
     /// <inheritdoc />
     public interface ILogger : IDisposable
     {
-        #region Properties
-
         /// <summary>
         ///     get or set the log method
         /// </summary>
         LogMethod LogMethod { get; set; }
-
-        #endregion
-
-        #region Methods
 
         /// <summary>
         ///     a info log
@@ -141,7 +135,5 @@ namespace Exomia.Logging
         ///     Flushes the Queue to the physical log file
         /// </summary>
         void Flush();
-
-        #endregion
     }
 }
