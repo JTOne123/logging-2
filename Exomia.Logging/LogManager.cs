@@ -1,6 +1,6 @@
 ﻿#region MIT License
 
-// Copyright (c) 2018 exomia - Daniel Bätz
+// Copyright (c) 2019 exomia - Daniel Bätz
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -65,14 +65,12 @@ namespace Exomia.Logging
 
         static LogManager()
         {
-            s_mainThread = Thread.CurrentThread;
+            s_mainThread  = Thread.CurrentThread;
             s_typeLoggers = new Dictionary<Type, LoggerBase>(16);
-            s_loggers = new LoggerBase[16];
+            s_loggers     = new LoggerBase[16];
             s_loggingThread = new Thread(LoggingThread)
             {
-                Name = "Exomia.Logging.LogManager Thread",
-                Priority = ThreadPriority.Lowest,
-                IsBackground = false
+                Name = "Exomia.Logging.LogManager", Priority = ThreadPriority.Lowest, IsBackground = true
             };
         }
 
@@ -115,8 +113,7 @@ namespace Exomia.Logging
             {
                 if (!s_typeLoggers.TryGetValue(type, out LoggerBase logger))
                 {
-                    logger = new FileLogger(className, directory)
-                        { LogMethod = logMethod };
+                    logger = new FileLogger(className, directory) { LogMethod = logMethod };
                     logger.PrepareLogging(DateTime.Now);
                     s_typeLoggers.Add(type, logger);
 
@@ -156,7 +153,7 @@ namespace Exomia.Logging
                 if (current.Day != now.Day)
                 {
                     current = now;
-                    for (int i = s_loggerCount - 1; i >= 0; i--)
+                    for (int i = s_loggerCount - 1; i >= 0 && !s_exit; i--)
                     {
                         LoggerBase logger = s_loggers[i];
                         if (logger != null)
@@ -166,21 +163,18 @@ namespace Exomia.Logging
                         }
                     }
                 }
-                for (int s = 0; s < s_maxLogAge; s++)
+                for (int s = 0; s < s_maxLogAge && !s_exit; s++)
                 {
-                    if (s_exit) { break; }
-                    for (int i = s_loggerCount - 1; i >= 0; i--)
+                    for (int i = s_loggerCount - 1; i >= 0 && !s_exit; i--)
                     {
-                        if (s_exit) { break; }
                         LoggerBase logger = s_loggers[i];
                         if (logger != null && logger._queue.Count > s_maxQueueSize) { logger.Flush(); }
                     }
                     Thread.Sleep(1);
                 }
-                for (int i = s_loggerCount - 1; i >= 0; i--)
+                for (int i = s_loggerCount - 1; i >= 0 && !s_exit; i--)
                 {
-                    LoggerBase logger = s_loggers[i];
-                    logger?.Flush();
+                    s_loggers[i]?.Flush();
                 }
             }
 

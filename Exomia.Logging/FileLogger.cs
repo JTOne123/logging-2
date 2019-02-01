@@ -1,6 +1,6 @@
 ﻿#region MIT License
 
-// Copyright (c) 2018 exomia - Daniel Bätz
+// Copyright (c) 2019 exomia - Daniel Bätz
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@ using System.Text;
 namespace Exomia.Logging
 {
     /// <inheritdoc />
-    public sealed class FileLogger : LoggerBase
+    sealed class FileLogger : LoggerBase
     {
         private readonly string _currentLogDirectory;
         private string _currentLogFile = string.Empty;
