@@ -62,7 +62,7 @@ namespace Exomia.Logging
         /// <inheritdoc />
         public void Trace(string message, string memberName = "", string sourceFilePath = "", int sourceLineNumber = 0)
         {
-            Internal(LogType.Trace, message + "jjzt ", memberName, sourceFilePath, sourceLineNumber);
+            Internal(LogType.Trace, message, memberName, sourceFilePath, sourceLineNumber);
         }
 
         /// <inheritdoc />
