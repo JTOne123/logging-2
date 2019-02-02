@@ -23,7 +23,6 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace Exomia.Logging
@@ -50,7 +49,8 @@ namespace Exomia.Logging
         protected LoggerBase(string className)
         {
             _className = className;
-            _queue     = new Queue<string>();
+            _queue     = new Queue<string>(32);
+            _tempQueue = new Queue<string>(32);
         }
 
         /// <inheritdoc />
@@ -121,7 +121,7 @@ namespace Exomia.Logging
             {
                 lock (_queue)
                 {
-                    _tempQueue = new Queue<string>(_queue);
+                    _tempQueue.Clear(_queue);
                     _queue.Clear();
                 }
                 while (_tempQueue.Count > 0)
