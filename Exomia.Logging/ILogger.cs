@@ -62,29 +62,20 @@ namespace Exomia.Logging
     ///     LogMethod
     /// </summary>
     [Flags]
-    public enum LogMethod
+    public enum LogAppender
     {
         /// <summary>
         /// </summary>
-        Default = 1 << 0,
+        File = 1 << 0,
 
         /// <summary>
         /// </summary>
         Console = 1 << 1,
-
-        /// <summary>
-        /// </summary>
-        Both = Default | Console
     }
 
     /// <inheritdoc />
     public interface ILogger : IDisposable
     {
-        /// <summary>
-        ///     get or set the log method
-        /// </summary>
-        LogMethod LogMethod { get; set; }
-
         /// <summary>
         ///     a info log
         /// </summary>
@@ -208,6 +199,7 @@ namespace Exomia.Logging
         /// <summary>
         ///     Flushes the Queue to the physical log file
         /// </summary>
-        void Flush();
+        /// <param name="force"><c>true</c> if flush should happen immediately; <c>false</c> otherwise</param>
+        void Flush(bool force);
     }
 }

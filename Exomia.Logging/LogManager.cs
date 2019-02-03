@@ -24,6 +24,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -35,37 +36,31 @@ namespace Exomia.Logging
     /// </summary>
     public static class LogManager
     {
-        private static readonly Dictionary<Type, LoggerBase> s_typeLoggers;
-        private static LoggerBase[] s_loggers;
+        private static readonly Dictionary<Type, Logger> s_typeLoggers;
+        private static Logger[] s_loggers;
         private static int s_loggerCount;
         private static readonly Thread s_mainThread;
 
-        private static int s_maxLogAge = 2 * 1000;
-        private static int s_maxQueueSize = 100;
+        /// <summary>
+        ///     Define the log directory for all file appenders
+        /// </summary>
+        public static string LogDirectory { get; set; } = "./";
 
         /// <summary>
         ///     MaxLogAge
         /// </summary>
-        public static int MaxLogAge
-        {
-            get { return s_maxLogAge; }
-            set { s_maxLogAge = value; }
-        }
+        public static int MaxLogAge { get; set; } = 5 * 1000;
 
         /// <summary>
         ///     MaxQueueSize
         /// </summary>
-        public static int MaxQueueSize
-        {
-            get { return s_maxQueueSize; }
-            set { s_maxQueueSize = value; }
-        }
+        public static int MaxQueueSize { get; set; } = 100;
 
         static LogManager()
         {
             s_mainThread = Thread.CurrentThread;
-            s_typeLoggers = new Dictionary<Type, LoggerBase>(16);
-            s_loggers = new LoggerBase[16];
+            s_typeLoggers = new Dictionary<Type, Logger>(16);
+            s_loggers = new Logger[16];
             new Thread(LoggingThread)
             {
                 Name         = "Exomia.Logging.LogManager",
@@ -77,11 +72,10 @@ namespace Exomia.Logging
         /// <summary>
         /// </summary>
         /// <param name="type"></param>
-        /// <param name="directory"></param>
-        /// <param name="logMethod"></param>
+        /// <param name="logAppender"></param>
         /// <param name="className"></param>
         /// <returns></returns>
-        public static ILogger GetFileLogger(Type type, string directory = "./", LogMethod logMethod = LogMethod.Both,
+        public static ILogger GetLogger(Type type, LogAppender logAppender = LogAppender.File | LogAppender.Console,
             string className = null)
         {
             if (string.IsNullOrEmpty(className))
@@ -94,13 +88,20 @@ namespace Exomia.Logging
 
             lock (s_typeLoggers)
             {
-                if (!s_typeLoggers.TryGetValue(type, out LoggerBase logger))
+                if (!s_typeLoggers.TryGetValue(type, out Logger logger))
                 {
-                    logger = new FileLogger(className, directory) { LogMethod = logMethod };
+                    List<IAppender> appenders = new List<IAppender>();
+                    if ((logAppender & LogAppender.File) == LogAppender.File)
+                    {
+                        appenders.Add(new FileAppender(className, LogDirectory, MaxQueueSize));
+                    }
+                    if ((logAppender & LogAppender.Console) == LogAppender.Console)
+                    {
+                        appenders.Add(new ConsoleAppender(className));
+                    }
+                    logger = new Logger(appenders.ToArray());
                     logger.PrepareLogging(DateTime.Now);
-
                     s_typeLoggers.Add(type, logger);
-
 
                     if (s_loggerCount + 1 >= s_loggers.Length)
                     {
@@ -117,21 +118,21 @@ namespace Exomia.Logging
         /// <summary>
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="directory"></param>
-        /// <param name="logMethod"></param>
+        /// <param name="logAppender"></param>
         /// <param name="className"></param>
         /// <returns></returns>
-        public static ILogger GetFileLogger<T>(string directory = "./", LogMethod logMethod = LogMethod.Both,
+        public static ILogger GetLogger<T>(LogAppender logAppender = LogAppender.File | LogAppender.Console,
             string className = null)
             where T : class
         {
-            return GetFileLogger(typeof(T), directory, logMethod, className);
+            return GetLogger(typeof(T), logAppender, className);
         }
 
         private static void LoggingThread()
         {
             DateTime current = DateTime.Now;
-
+            Stopwatch sw = new Stopwatch();
+            
             while (s_mainThread.IsAlive)
             {
                 DateTime now = DateTime.Now;
@@ -140,26 +141,26 @@ namespace Exomia.Logging
                     current = now;
                     for (int i = s_loggerCount - 1; i >= 0 && s_mainThread.IsAlive; i--)
                     {
-                        LoggerBase logger = s_loggers[i];
+                        Logger logger = s_loggers[i];
                         if (logger != null)
                         {
-                            logger.Flush();
+                            logger.Flush(true);
                             logger.PrepareLogging(now);
                         }
                     }
                 }
-                for (int s = 0; s < s_maxLogAge && s_mainThread.IsAlive; s++)
+                sw.Restart();
+                while(sw.Elapsed.TotalMilliseconds < MaxLogAge)
                 {
                     for (int i = s_loggerCount - 1; i >= 0 && s_mainThread.IsAlive; i--)
                     {
-                        LoggerBase logger = s_loggers[i];
-                        if (logger != null && logger._queue.Count > s_maxQueueSize) { logger.Flush(); }
+                        s_loggers[i]?.Flush(false);
                     }
                     Thread.Sleep(1);
                 }
                 for (int i = s_loggerCount - 1; i >= 0 && s_mainThread.IsAlive; i--)
                 {
-                    s_loggers[i]?.Flush();
+                    s_loggers[i]?.Flush(true);
                 }
             }
 

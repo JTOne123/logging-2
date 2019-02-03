@@ -28,31 +28,14 @@ using System.Runtime.CompilerServices;
 namespace Exomia.Logging
 {
     /// <inheritdoc />
-    abstract class LoggerBase : ILogger
+    sealed class Logger : ILogger
     {
-        /// <summary>
-        /// </summary>
-        protected readonly string _className;
-
-        internal readonly Queue<string> _queue;
-        internal Queue<string> _tempQueue;
-        private LogMethod _logMethod = LogMethod.Both;
-
-        /// <inheritdoc />
-        public LogMethod LogMethod
+        private readonly IAppender[] _appenders;
+        public Logger(IAppender[] appenders)
         {
-            get { return _logMethod; }
-            set { _logMethod = value; }
+            _appenders = appenders;
         }
-
-        /// <inheritdoc />
-        protected LoggerBase(string className)
-        {
-            _className = className;
-            _queue     = new Queue<string>(32);
-            _tempQueue = new Queue<string>(32);
-        }
-
+        
         /// <inheritdoc />
         public void Trace(Exception ex, string memberName = "", string sourceFilePath = "", int sourceLineNumber = 0)
         {
@@ -114,72 +97,30 @@ namespace Exomia.Logging
             Internal(LogType.Error, message, memberName, sourceFilePath, sourceLineNumber);
         }
 
-        /// <inheritdoc />
-        public void Flush()
-        {
-            if ((_logMethod & LogMethod.Default) == LogMethod.Default)
-            {
-                lock (_queue)
-                {
-                    _tempQueue.Clear(_queue);
-                    _queue.Clear();
-                }
-                while (_tempQueue.Count > 0)
-                {
-                    Flush(_tempQueue.Dequeue());
-                }
-                OnFlushFinished();
-            }
-        }
-
-        /// <summary>
-        ///     called at the end of a flush
-        /// </summary>
-        public abstract void OnFlushFinished();
-
-        /// <summary>
-        /// </summary>
-        /// <param name="entry"></param>
-        public abstract void Flush(string entry);
-
-        internal abstract void PrepareLogging(DateTime dateTime);
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Internal(LogType logType, string message, string memberName, string sourceFilePath,
             int sourceLineNumber)
         {
-            message =
-                $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}|{_className}|{logType} [{memberName}|{sourceFilePath}:{sourceLineNumber}] {message}";
-            if ((_logMethod & LogMethod.Default) == LogMethod.Default)
+            for (int i = 0; i < _appenders.Length; i++)
             {
-                lock (_queue)
-                {
-                    _queue.Enqueue(message);
-                }
+                _appenders[i].Enqueue(logType, message, memberName, sourceFilePath, sourceLineNumber);
             }
-            if ((_logMethod & LogMethod.Console) == LogMethod.Console)
+        }
+
+        /// <inheritdoc />
+        public void Flush(bool force)
+        {
+            for (int i = 0; i < _appenders.Length; i++)
             {
-                ConsoleColor current = Console.ForegroundColor;
-                switch (logType)
-                {
-                    case LogType.Trace:
-                        Console.ForegroundColor = ConsoleColor.Magenta;
-                        break;
-                    case LogType.Debug:
-                        Console.ForegroundColor = ConsoleColor.Cyan;
-                        break;
-                    case LogType.Info:
-                        Console.ForegroundColor = ConsoleColor.White;
-                        break;
-                    case LogType.Warning:
-                        Console.ForegroundColor = ConsoleColor.Yellow;
-                        break;
-                    case LogType.Error:
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        break;
-                }
-                Console.Out.WriteLine(message);
-                Console.ForegroundColor = current;
+                _appenders[i].Flush(force);
+            }
+        }
+
+        public void PrepareLogging(DateTime dateTime)
+        {
+            for (int i = 0; i < _appenders.Length; i++)
+            {
+                _appenders[i].PrepareLogging(dateTime);
             }
         }
 
@@ -193,22 +134,25 @@ namespace Exomia.Logging
             {
                 if (disposing)
                 {
-                    Flush();
+                    for (int i = 0; i < _appenders.Length; i++)
+                    {
+                        _appenders[i].Dispose();
+                    }
                 }
-                OnDispose(disposing);
                 _disposedValue = true;
             }
         }
 
-        /// <summary>
-        /// </summary>
-        /// <param name="disposing"></param>
-        protected virtual void OnDispose(bool disposing) { }
+        ~Logger()
+        {
+            Dispose(false);
+        }
 
         /// <inheritdoc />
         public void Dispose()
         {
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         #endregion
