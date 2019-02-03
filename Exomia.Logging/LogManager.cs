@@ -38,9 +38,7 @@ namespace Exomia.Logging
         private static readonly Dictionary<Type, LoggerBase> s_typeLoggers;
         private static LoggerBase[] s_loggers;
         private static int s_loggerCount;
-        private static readonly Thread s_loggingThread;
         private static readonly Thread s_mainThread;
-        private static bool s_exit;
 
         private static int s_maxLogAge = 2 * 1000;
         private static int s_maxQueueSize = 100;
@@ -68,13 +66,12 @@ namespace Exomia.Logging
             s_mainThread = Thread.CurrentThread;
             s_typeLoggers = new Dictionary<Type, LoggerBase>(16);
             s_loggers = new LoggerBase[16];
-            s_loggingThread = new Thread(LoggingThread)
+            new Thread(LoggingThread)
             {
-                Name = "Exomia.Logging.LogManager",
-                Priority = ThreadPriority.Lowest,
+                Name         = "Exomia.Logging.LogManager",
+                Priority     = ThreadPriority.Lowest,
                 IsBackground = false
-            };
-            s_loggingThread.Start();
+            }.Start();
         }
 
         /// <summary>
@@ -101,7 +98,9 @@ namespace Exomia.Logging
                 {
                     logger = new FileLogger(className, directory) { LogMethod = logMethod };
                     logger.PrepareLogging(DateTime.Now);
+
                     s_typeLoggers.Add(type, logger);
+
 
                     if (s_loggerCount + 1 >= s_loggers.Length)
                     {
@@ -133,13 +132,13 @@ namespace Exomia.Logging
         {
             DateTime current = DateTime.Now;
 
-            while (!s_exit && s_mainThread.IsAlive)
+            while (s_mainThread.IsAlive)
             {
                 DateTime now = DateTime.Now;
                 if (current.Day != now.Day)
                 {
                     current = now;
-                    for (int i = s_loggerCount - 1; i >= 0 && !s_exit; i--)
+                    for (int i = s_loggerCount - 1; i >= 0 && s_mainThread.IsAlive; i--)
                     {
                         LoggerBase logger = s_loggers[i];
                         if (logger != null)
@@ -149,16 +148,16 @@ namespace Exomia.Logging
                         }
                     }
                 }
-                for (int s = 0; s < s_maxLogAge && !s_exit; s++)
+                for (int s = 0; s < s_maxLogAge && s_mainThread.IsAlive; s++)
                 {
-                    for (int i = s_loggerCount - 1; i >= 0 && !s_exit; i--)
+                    for (int i = s_loggerCount - 1; i >= 0 && s_mainThread.IsAlive; i--)
                     {
                         LoggerBase logger = s_loggers[i];
                         if (logger != null && logger._queue.Count > s_maxQueueSize) { logger.Flush(); }
                     }
                     Thread.Sleep(1);
                 }
-                for (int i = s_loggerCount - 1; i >= 0 && !s_exit; i--)
+                for (int i = s_loggerCount - 1; i >= 0 && s_mainThread.IsAlive; i--)
                 {
                     s_loggers[i]?.Flush();
                 }
