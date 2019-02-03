@@ -65,30 +65,16 @@ namespace Exomia.Logging
 
         static LogManager()
         {
-            s_mainThread  = Thread.CurrentThread;
+            s_mainThread = Thread.CurrentThread;
             s_typeLoggers = new Dictionary<Type, LoggerBase>(16);
-            s_loggers     = new LoggerBase[16];
+            s_loggers = new LoggerBase[16];
             s_loggingThread = new Thread(LoggingThread)
             {
-                Name = "Exomia.Logging.LogManager", Priority = ThreadPriority.Lowest, IsBackground = true
+                Name = "Exomia.Logging.LogManager",
+                Priority = ThreadPriority.Lowest,
+                IsBackground = false
             };
-        }
-
-        /// <summary>
-        ///     start logging
-        /// </summary>
-        public static void Start()
-        {
             s_loggingThread.Start();
-        }
-
-        /// <summary>
-        ///     stop logging
-        /// </summary>
-        public static void Stop()
-        {
-            s_exit = true;
-            s_loggingThread.Join();
         }
 
         /// <summary>
