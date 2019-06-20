@@ -1,24 +1,10 @@
-﻿#region MIT License
+﻿#region License
 
-// Copyright (c) 2019 exomia - Daniel Bätz
+// Copyright (c) 2018-2019, exomia
+// All rights reserved.
 // 
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree.
 
 #endregion
 
@@ -27,15 +13,25 @@ using System.Runtime.CompilerServices;
 
 namespace Exomia.Logging
 {
-    /// <inheritdoc />
+    /// <summary>
+    ///     A logger. This class cannot be inherited.
+    /// </summary>
     sealed class Logger : ILogger
     {
+        /// <summary>
+        ///     The appenders.
+        /// </summary>
         private readonly IAppender[] _appenders;
+
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="Logger" /> class.
+        /// </summary>
+        /// <param name="appenders"> The appenders. </param>
         public Logger(IAppender[] appenders)
         {
             _appenders = appenders;
         }
-        
+
         /// <inheritdoc />
         public void Trace(Exception ex, string memberName = "", string sourceFilePath = "", int sourceLineNumber = 0)
         {
@@ -80,7 +76,7 @@ namespace Exomia.Logging
 
         /// <inheritdoc />
         public void Warning(string message, string memberName = "", string sourceFilePath = "",
-            int sourceLineNumber = 0)
+                            int    sourceLineNumber = 0)
         {
             Internal(LogType.Warning, message, memberName, sourceFilePath, sourceLineNumber);
         }
@@ -97,16 +93,6 @@ namespace Exomia.Logging
             Internal(LogType.Error, message, memberName, sourceFilePath, sourceLineNumber);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void Internal(LogType logType, string message, string memberName, string sourceFilePath,
-            int sourceLineNumber)
-        {
-            for (int i = 0; i < _appenders.Length; i++)
-            {
-                _appenders[i].Enqueue(logType, message, memberName, sourceFilePath, sourceLineNumber);
-            }
-        }
-
         /// <inheritdoc />
         public void Flush(bool force)
         {
@@ -116,6 +102,10 @@ namespace Exomia.Logging
             }
         }
 
+        /// <summary>
+        ///     Prepare logging.
+        /// </summary>
+        /// <param name="dateTime"> The date time. </param>
         public void PrepareLogging(DateTime dateTime)
         {
             for (int i = 0; i < _appenders.Length; i++)
@@ -124,10 +114,39 @@ namespace Exomia.Logging
             }
         }
 
+        /// <summary>
+        ///     Internals.
+        /// </summary>
+        /// <param name="logType">          Type of the log. </param>
+        /// <param name="message">          The message. </param>
+        /// <param name="memberName">       Name of the member. </param>
+        /// <param name="sourceFilePath">   Full pathname of the source file. </param>
+        /// <param name="sourceLineNumber"> Source line number. </param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void Internal(LogType logType, string message, string memberName, string sourceFilePath,
+                              int     sourceLineNumber)
+        {
+            for (int i = 0; i < _appenders.Length; i++)
+            {
+                _appenders[i].Enqueue(logType, message, memberName, sourceFilePath, sourceLineNumber);
+            }
+        }
+
         #region IDisposable Support
 
+        /// <summary>
+        ///     True to disposed value.
+        /// </summary>
         private bool _disposedValue;
 
+        /// <summary>
+        ///     Releases the unmanaged resources used by the Exomia.Logging.Logger and optionally
+        ///     releases the managed resources.
+        /// </summary>
+        /// <param name="disposing">
+        ///     True to release both managed and unmanaged resources; false to
+        ///     release only unmanaged resources.
+        /// </param>
         private void Dispose(bool disposing)
         {
             if (!_disposedValue)
@@ -143,6 +162,9 @@ namespace Exomia.Logging
             }
         }
 
+        /// <summary>
+        ///     Finalizes an instance of the <see cref="Logger" /> class.
+        /// </summary>
         ~Logger()
         {
             Dispose(false);

@@ -1,4 +1,14 @@
-﻿using System;
+﻿#region License
+
+// Copyright (c) 2018-2019, exomia
+// All rights reserved.
+// 
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree.
+
+#endregion
+
+using System;
 
 namespace Exomia.Logging
 {
@@ -13,7 +23,8 @@ namespace Exomia.Logging
         }
 
         /// <inheritdoc />
-        public void Enqueue(LogType logType, string message, string memberName, string sourceFilePath, int sourceLineNumber)
+        public void Enqueue(LogType logType, string message, string memberName, string sourceFilePath,
+                            int     sourceLineNumber)
         {
             ConsoleColor current = Console.ForegroundColor;
             switch (logType)
@@ -34,7 +45,8 @@ namespace Exomia.Logging
                     Console.ForegroundColor = ConsoleColor.Red;
                     break;
             }
-            Console.Out.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss}|{_className}|{logType} [{memberName}|{sourceFilePath}:{sourceLineNumber}] {message}");
+            Console.Out.WriteLine(
+                $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}|{_className}|{logType} [{memberName}|{sourceFilePath}:{sourceLineNumber}] {message}");
             Console.ForegroundColor = current;
         }
 
@@ -54,6 +66,7 @@ namespace Exomia.Logging
         }
 
         #region IDisposable Support
+
         private bool _disposedValue;
 
         public void Dispose()
@@ -77,8 +90,8 @@ namespace Exomia.Logging
                     Flush(true);
                 }
             }
-
         }
+
         #endregion
     }
 }

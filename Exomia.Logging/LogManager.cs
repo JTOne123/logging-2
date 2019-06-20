@@ -1,24 +1,10 @@
-﻿#region MIT License
+﻿#region License
 
-// Copyright (c) 2019 exomia - Daniel Bätz
+// Copyright (c) 2018-2019, exomia
+// All rights reserved.
 // 
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree.
 
 #endregion
 
@@ -32,51 +18,79 @@ using System.Threading;
 namespace Exomia.Logging
 {
     /// <summary>
-    ///     LogManager class
+    ///     Manager for logs.
     /// </summary>
     public static class LogManager
     {
+        /// <summary>
+        ///     The type loggers.
+        /// </summary>
         private static readonly Dictionary<Type, Logger> s_typeLoggers;
+
+        /// <summary>
+        ///     The loggers.
+        /// </summary>
         private static Logger[] s_loggers;
+
+        /// <summary>
+        ///     Number of loggers.
+        /// </summary>
         private static int s_loggerCount;
+
+        /// <summary>
+        ///     The main thread.
+        /// </summary>
         private static readonly Thread s_mainThread;
 
         /// <summary>
-        ///     Define the log directory for all file appenders
+        ///     Define the log directory for all file appenders.
         /// </summary>
+        /// <value>
+        ///     The pathname of the log directory.
+        /// </value>
         public static string LogDirectory { get; set; } = "./";
 
         /// <summary>
-        ///     MaxLogAge
+        ///     MaxLogAge.
         /// </summary>
+        /// <value>
+        ///     The maximum log age.
+        /// </value>
         public static int MaxLogAge { get; set; } = 5 * 1000;
 
         /// <summary>
-        ///     MaxQueueSize
+        ///     MaxQueueSize.
         /// </summary>
+        /// <value>
+        ///     The size of the maximum queue.
+        /// </value>
         public static int MaxQueueSize { get; set; } = 100;
 
+        /// <summary>
+        ///     Initializes static members of the <see cref="LogManager" /> class.
+        /// </summary>
         static LogManager()
         {
-            s_mainThread = Thread.CurrentThread;
+            s_mainThread  = Thread.CurrentThread;
             s_typeLoggers = new Dictionary<Type, Logger>(16);
-            s_loggers = new Logger[16];
+            s_loggers     = new Logger[16];
             new Thread(LoggingThread)
             {
-                Name         = "Exomia.Logging.LogManager",
-                Priority     = ThreadPriority.Lowest,
-                IsBackground = false
+                Name = "Exomia.Logging.LogManager", Priority = ThreadPriority.Lowest, IsBackground = false
             }.Start();
         }
 
         /// <summary>
+        ///     Gets a logger.
         /// </summary>
-        /// <param name="type"></param>
-        /// <param name="logAppender"></param>
-        /// <param name="className"></param>
-        /// <returns></returns>
-        public static ILogger GetLogger(Type type, LogAppender logAppender = LogAppender.File | LogAppender.Console,
-            string className = null)
+        /// <param name="type">        The type. </param>
+        /// <param name="logAppender"> (Optional) The <see cref="LogAppender" /> </param>
+        /// <param name="className">   (Optional) The class name</param>
+        /// <returns>
+        ///     The logger.
+        /// </returns>
+        public static ILogger GetLogger(Type   type, LogAppender logAppender = LogAppender.File | LogAppender.Console,
+                                        string className = null)
         {
             if (string.IsNullOrEmpty(className))
             {
@@ -116,23 +130,29 @@ namespace Exomia.Logging
         }
 
         /// <summary>
+        ///     Gets a logger.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="logAppender"></param>
-        /// <param name="className"></param>
-        /// <returns></returns>
+        /// <typeparam name="T"> Generic type parameter. </typeparam>
+        /// <param name="logAppender"> (Optional) The <see cref="LogAppender" /> </param>
+        /// <param name="className">   (Optional) The class name</param>
+        /// <returns>
+        ///     The logger.
+        /// </returns>
         public static ILogger GetLogger<T>(LogAppender logAppender = LogAppender.File | LogAppender.Console,
-            string className = null)
+                                           string      className   = null)
             where T : class
         {
             return GetLogger(typeof(T), logAppender, className);
         }
 
+        /// <summary>
+        ///     Logging thread.
+        /// </summary>
         private static void LoggingThread()
         {
-            DateTime current = DateTime.Now;
-            Stopwatch sw = new Stopwatch();
-            
+            DateTime  current = DateTime.Now;
+            Stopwatch sw      = new Stopwatch();
+
             while (s_mainThread.IsAlive)
             {
                 DateTime now = DateTime.Now;
@@ -150,7 +170,7 @@ namespace Exomia.Logging
                     }
                 }
                 sw.Restart();
-                while(sw.Elapsed.TotalMilliseconds < MaxLogAge)
+                while (sw.Elapsed.TotalMilliseconds < MaxLogAge)
                 {
                     for (int i = s_loggerCount - 1; i >= 0 && s_mainThread.IsAlive; i--)
                     {
